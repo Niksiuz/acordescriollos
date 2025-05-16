@@ -26,7 +26,7 @@ function Home({ search }: HomeProps) {
         const data = await fetchSongs();
         setSongs(data);
       } catch (error) {
-        console.error("Error fetching songs:", error);
+        console.error("Error al obtener canciones:", error);
       } finally {
         setIsLoading(false);
       }
@@ -35,20 +35,19 @@ function Home({ search }: HomeProps) {
     loadSongs();
   }, []);
 
-  // Crear lista de géneros sin duplicados
+  // Lista de géneros únicos (sin duplicados)
   const genres = [
     "Todos",
-    ...Array.from(new Set(songs.map((song) => song.genre))).filter(Boolean), // Filtra valores vacíos por si acaso
+    ...Array.from(new Set(songs.map((song) => song.genre))).filter(Boolean),
   ];
 
-  // Filtrar canciones según búsqueda y género
+  // Filtro combinado por búsqueda y género
   const filteredSongs = songs.filter((song) => {
-    const searchLower = search.toLowerCase();
-
+    const query = search.toLowerCase();
     const matchesSearch =
-      song.title.toLowerCase().includes(searchLower) ||
-      song.artist.toLowerCase().includes(searchLower) ||
-      song.genre.toLowerCase().includes(searchLower);
+      song.title.toLowerCase().includes(query) ||
+      song.artist.toLowerCase().includes(query) ||
+      song.genre.toLowerCase().includes(query);
 
     const matchesGenre =
       selectedGenre === "Todos" || song.genre === selectedGenre;
@@ -57,59 +56,54 @@ function Home({ search }: HomeProps) {
   });
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-6 text-red-800">
-        Lista de Canciones
-      </h2>
+    <div className="container py-4">
+      <h2 className="text-2xl fw-bold text-danger mb-4">Lista de Canciones</h2>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Filtros por género */}
+      <div className="d-flex flex-wrap gap-2 mb-4">
         {genres.map((genre) => (
           <button
             key={genre}
             onClick={() => setSelectedGenre(genre)}
-            className={`px-4 py-2 rounded-lg border transition ${
+            className={`btn border ${
               selectedGenre === genre
-                ? "bg-red-600 text-white"
-                : "bg-white text-red-600"
+                ? "btn-danger text-white"
+                : "btn-outline-danger"
             }`}
-            aria-pressed={selectedGenre === genre}
           >
             {genre}
           </button>
         ))}
       </div>
 
+      {/* Lista de canciones */}
       {isLoading ? (
         <Loader />
-      ) : (
-        <ul className="space-y-3">
-          {filteredSongs.length > 0 ? (
-            filteredSongs.map((song) => (
-              <li key={song.id} className="border-b pb-2">
-                <Link
-                  to={`/song/${song.id}`}
-                  className="text-red-700 hover:underline text-lg"
-                >
-                  {song.title}
-                </Link>{" "}
-                -{" "}
-                <Link
-                  to={`/artist/${encodeURIComponent(song.artist)}`}
-                  className="text-gray-600 hover:underline"
-                >
-                  {song.artist}
-                </Link>
-                <div className="text-sm text-amber-600">
-                  Género: {song.genre}
-                </div>
-              </li>
-            ))
-          ) : (
-            <li className="text-gray-500 italic animate-fadeIn">
-              No se encontraron canciones.
+      ) : filteredSongs.length > 0 ? (
+        <ul className="list-unstyled">
+          {filteredSongs.map((song) => (
+            <li key={song.id} className="mb-3 border-bottom pb-2">
+              <Link
+                to={`/song/${song.id}`}
+                className="text-decoration-none text-danger fw-bold"
+              >
+                {song.title}
+              </Link>{" "}
+              -{" "}
+              <Link
+                to={`/artist/${encodeURIComponent(song.artist)}`}
+                className="text-decoration-none text-secondary"
+              >
+                {song.artist}
+              </Link>
+              <div className="text-muted small">Género: {song.genre}</div>
             </li>
-          )}
+          ))}
         </ul>
+      ) : (
+        <div className="text-muted fst-italic">
+          No se encontraron canciones.
+        </div>
       )}
     </div>
   );

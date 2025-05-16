@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { addSong } from "../api/songsApi"; // ✅ Asegúrate de que esta ruta sea correcta
+import { addSong } from "../api/songsApi";
 import logo from "../assets/logo.webp";
 
 interface HeaderProps {
@@ -18,26 +18,32 @@ function Header({ search, setSearch }: HeaderProps) {
 
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate("/");
-  };
-
-  const handleAddSong = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await addSong({ title, artist, genre, lyrics });
-    setTitle("");
-    setArtist("");
-    setGenre("");
-    setLyrics("");
-    setShowForm(false);
-    navigate(0); // Recarga la página
-  };
-
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate("/"); // Podrías agregar lógica para filtrar si no estás ya en /
+  };
+
+  const handleAddSong = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      await addSong({ title, artist, genre, lyrics });
+      setTitle("");
+      setArtist("");
+      setGenre("");
+      setLyrics("");
+      setShowForm(false);
+      navigate(0); // Recarga la página
+    } catch (error) {
+      console.error("Error al agregar canción:", error);
+      alert("Hubo un error al guardar la canción.");
+    }
+  };
 
   return (
     <header
@@ -48,6 +54,7 @@ function Header({ search, setSearch }: HeaderProps) {
     >
       <div className="container py-3">
         <div className="row align-items-center g-2">
+          {/* Logo */}
           <div className="col-auto">
             <img
               src={logo}
@@ -60,6 +67,8 @@ function Header({ search, setSearch }: HeaderProps) {
               onClick={() => navigate("/")}
             />
           </div>
+
+          {/* Campo de búsqueda */}
           <div className="col-md col-12">
             <form
               onSubmit={handleSearchSubmit}
@@ -78,6 +87,8 @@ function Header({ search, setSearch }: HeaderProps) {
               </button>
             </form>
           </div>
+
+          {/* Botón para abrir/cerrar formulario */}
           <div className="col-auto">
             <button
               onClick={() => setShowForm(!showForm)}
@@ -89,6 +100,7 @@ function Header({ search, setSearch }: HeaderProps) {
         </div>
       </div>
 
+      {/* Formulario para agregar canción */}
       {showForm && (
         <div className="container my-3">
           <div className="card shadow">
@@ -98,8 +110,6 @@ function Header({ search, setSearch }: HeaderProps) {
                 onSubmit={handleAddSong}
               >
                 <input
-                  id="title"
-                  name="title"
                   type="text"
                   placeholder="Título de la canción"
                   className="form-control"
@@ -109,8 +119,6 @@ function Header({ search, setSearch }: HeaderProps) {
                 />
 
                 <input
-                  id="artist"
-                  name="artist"
                   type="text"
                   placeholder="Artista"
                   className="form-control"
@@ -118,9 +126,8 @@ function Header({ search, setSearch }: HeaderProps) {
                   value={artist}
                   onChange={(e) => setArtist(e.target.value)}
                 />
+
                 <input
-                  id="genre"
-                  name="genre"
                   type="text"
                   placeholder="Género"
                   className="form-control"
@@ -130,8 +137,6 @@ function Header({ search, setSearch }: HeaderProps) {
                 />
 
                 <textarea
-                  id="lyrics"
-                  name="lyrics"
                   placeholder="Letra con acordes"
                   rows={5}
                   className="form-control"
@@ -139,6 +144,7 @@ function Header({ search, setSearch }: HeaderProps) {
                   value={lyrics}
                   onChange={(e) => setLyrics(e.target.value)}
                 />
+
                 <button type="submit" className="btn btn-danger">
                   Guardar Canción
                 </button>

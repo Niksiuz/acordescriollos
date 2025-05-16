@@ -7,19 +7,19 @@ import Song from "./pages/Song";
 import ArtistPage from "./pages/ArtistPage";
 
 function App() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
 
   return (
     <BrowserRouter>
-      <div className="d-flex flex-column min-vh-100 bg-amber-50">
-        {/* Encabezado con búsqueda */}
+      <div className="d-flex flex-column min-vh-100 bg-light">
+        {/* Encabezado con campo de búsqueda */}
         <Header search={search} setSearch={setSearch} />
 
-        {/* Rutas principales */}
-        <main className="flex-grow-1">
+        {/* Contenido principal */}
+        <main className="flex-grow-1 container py-4">
           <Routes>
             <Route path="/" element={<Home search={search} />} />
-            <Route path="/song/:id" element={<Song />} /> {/* Ruta dinámica */}
+            <Route path="/song/:id" element={<Song />} />
             <Route path="/artist/:artistName" element={<ArtistPage />} />
           </Routes>
         </main>

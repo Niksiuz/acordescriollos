@@ -3,83 +3,68 @@ from flask_cors import CORS
 import json
 import os
 
+
 app = Flask(__name__)
 CORS(app)
 
 SONGS_FILE = os.path.join("api", "songs", "songs.json")
 
-# Función para cargar canciones desde archivo
-def load_songs():
-    try:
-        with open(SONGS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
-    except Exception as e:
-        print("Error al cargar canciones:", e)
-        return []
-
-# Función para guardar canciones en archivo
-def save_songs(songs):
-    try:
-        with open(SONGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(songs, f, indent=2, ensure_ascii=False)
-        return True
-    except Exception as e:
-        print("Error al guardar canciones:", e)
-        return False
-
-@app.route("/")
-def home():
-    return "Backend de Acordes Criollos funcionando!"
-
+# Ruta para analizar texto
 @app.route("/analizar", methods=["POST"])
 def analizar():
-    data = request.get_json()
-    texto = data.get("texto", "")
-    acordes_detectados = "Acorde simulado para: " + texto
-    return jsonify({"acordes": acordes_detectados})
+    try:
+        data = request.get_json(force=True)
+        texto = data.get("texto", "")
+        acordes_detectados = f"Acorde simulado para: {texto}"
+        return jsonify({"acordes": acordes_detectados})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
+# Obtener todas las canciones
 @app.route("/api/songs", methods=["GET"])
 def get_songs():
-    songs = load_songs()
-    return jsonify(songs)
+    try:
+        if not os.path.exists(SONGS_FILE):
+            return jsonify([])  # Devolver lista vacía si no existe el archivo
 
+        with open(SONGS_FILE, "r", encoding="utf-8") as f:
+            songs = json.load(f)
+        return jsonify(songs)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Agregar una nueva canción
 @app.route("/api/songs", methods=["POST"])
 def add_song():
-    data = request.get_json()
-    songs = load_songs()
+    try:
+        new_song = request.get_json(force=True)
 
-    # Validar datos mínimos
-    if not data.get("title") or not data.get("artist") or not data.get("genre") or not data.get("lyrics"):
-        return jsonify({"error": "Faltan campos obligatorios"}), 400
+        required_fields = {"title", "artist", "genre", "lyrics"}
+        if not required_fields.issubset(new_song):
+            return jsonify({"error": "Faltan campos requeridos"}), 400
 
-    # Asignar nuevo ID incremental
-    new_id = max([song["id"] for song in songs], default=0) + 1
+        # Crear archivo si no existe
+        if not os.path.exists(SONGS_FILE):
+            os.makedirs(os.path.dirname(SONGS_FILE), exist_ok=True)
+            with open(SONGS_FILE, "w", encoding="utf-8") as f:
+                json.dump([], f)
 
-    new_song = {
-        "id": new_id,
-        "title": data["title"],
-        "artist": data["artist"],
-        "genre": data["genre"],
-        "lyrics": data["lyrics"]
-    }
+        with open(SONGS_FILE, "r+", encoding="utf-8") as f:
+            try:
+                songs = json.load(f)
+            except json.JSONDecodeError:
+                songs = []
 
-    songs.append(new_song)
+            new_song["id"] = max((s.get("id", 0) for s in songs), default=0) + 1
+            songs.append(new_song)
 
-    if save_songs(songs):
-        return jsonify(new_song), 201
-    else:
-        return jsonify({"error": "No se pudo guardar la canción"}), 500
+            f.seek(0)
+            json.dump(songs, f, indent=2, ensure_ascii=False)
+            f.truncate()
 
-@app.route("/api/songs/<int:song_id>", methods=["GET"])
-def get_song_by_id(song_id):
-    songs = load_songs()
-    song = next((s for s in songs if s["id"] == song_id), None)
-    if song:
-        return jsonify(song)
-    else:
-        return jsonify({"error": "Canción no encontrada"}), 404
+        return jsonify({"song": new_song}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

@@ -11,7 +11,8 @@ function Song() {
   const navigate = useNavigate();
   const [song, setSong] = useState<SongType | null>(null);
   const [tone, setTone] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
+  // const [isScrolling, setIsScrolling] = useState(false); // Eliminado porque no se usa
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedLyrics, setEditedLyrics] = useState("");
 

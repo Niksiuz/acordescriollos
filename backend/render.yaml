@@ -1,7 +1,14 @@
 services:
   - type: web
-    name: acordes-criollos-backend
+    name: acordes-backend
     env: python
+    region: oregon
     plan: free
-    buildCommand: ""
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: VITE_API_URL
+        value: "https://acordescriollos.onrender.com"
+    autoDeploy: true

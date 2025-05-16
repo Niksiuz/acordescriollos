@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Loader from "../components/Loader";
-import { fetchSongs } from "../api/songsApi"; // 👈🏻 Usamos el servicio
+import { fetchSongs } from "../api/songsApi";
 
 type HomeProps = {
   search: string;
@@ -15,8 +15,7 @@ type Song = {
 };
 
 function Home({ search }: HomeProps) {
-  const [songs, setSongs] = useState<Song[]>([]); // ✅ Por defecto es un array
-
+  const [songs, setSongs] = useState<Song[]>([]);
   const [selectedGenre, setSelectedGenre] = useState("Todos");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +23,7 @@ function Home({ search }: HomeProps) {
     const loadSongs = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchSongs(); // ✅ Reutilizamos la función
+        const data = await fetchSongs();
         setSongs(data);
       } catch (error) {
         console.error("Error fetching songs:", error);
@@ -36,16 +35,20 @@ function Home({ search }: HomeProps) {
     loadSongs();
   }, []);
 
+  // Crear lista de géneros sin duplicados
   const genres = [
     "Todos",
-    ...Array.from(new Set(songs.map((song) => song.genre))),
+    ...Array.from(new Set(songs.map((song) => song.genre))).filter(Boolean), // Filtra valores vacíos por si acaso
   ];
 
+  // Filtrar canciones según búsqueda y género
   const filteredSongs = songs.filter((song) => {
+    const searchLower = search.toLowerCase();
+
     const matchesSearch =
-      song.title.toLowerCase().includes(search.toLowerCase()) ||
-      song.artist.toLowerCase().includes(search.toLowerCase()) ||
-      song.genre.toLowerCase().includes(search.toLowerCase());
+      song.title.toLowerCase().includes(searchLower) ||
+      song.artist.toLowerCase().includes(searchLower) ||
+      song.genre.toLowerCase().includes(searchLower);
 
     const matchesGenre =
       selectedGenre === "Todos" || song.genre === selectedGenre;
@@ -69,6 +72,7 @@ function Home({ search }: HomeProps) {
                 ? "bg-red-600 text-white"
                 : "bg-white text-red-600"
             }`}
+            aria-pressed={selectedGenre === genre}
           >
             {genre}
           </button>

@@ -26,6 +26,10 @@ try {
   fs.writeFileSync(SONGS_FILE, JSON.stringify([], null, 2));
 }
 
+app.get("/", (req, res) => {
+  res.send("Backend de Acordes Criollos funcionando ✅");
+});
+
 // Obtener todas las canciones
 app.get("/api/songs", (req, res) => {
   try {

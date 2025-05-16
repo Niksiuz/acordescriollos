@@ -2,15 +2,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # permite solicitudes desde el frontend (Firebase)
+CORS(app)
 
-@app.route('/analizar', methods=['POST'])
+@app.route("/analizar", methods=["POST"])
 def analizar():
     data = request.get_json()
-    # Simulación de procesamiento
-    resultado = {'acordes': 'Acorde simulado'}
-    return jsonify(resultado)
+    # Aquí va tu lógica de análisis con Python
+    texto = data.get("texto", "")
+    
+    # Simulación de respuesta
+    acordes_detectados = "Acorde simulado para: " + texto
+    return jsonify({"acordes": acordes_detectados})
 
-# Esto NO es necesario para Render:
-# if __name__ == '__main__':
-#     app.run()
+if __name__ == "__main__":
+    app.run(debug=True)
